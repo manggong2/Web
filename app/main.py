@@ -1,29 +1,56 @@
-from typing import Union
-
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-class Item(BaseModel):
+app = FastAPI()
+
+user_name = None
+
+class User(BaseModel):
     name: str
-    price: float
-    description: Union[str, None] = None
+
 
 @app.get("/")
-async def read_root():
-    return "This is root path from MyAPI"
+def root():
+    return{ "message": "Hello yejini!"}
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: Union[str,  None] = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/home")
+def home():
+    return { "message": "Bye yejini!" }
 
-@app.post("/items/")
-async def create_item(item: Item):
-    return item
+#####여기까지 저번주########
 
-@app.put("/items/{item_id}")
-async def update_item(item_id: int, item: Item):
-    result = {"item_id": item_id, **item.dict()}
 
-@app.delete("/items/{item_id}")
-def delete_item(item_id: int):
-    return {"deleted": item_id}
+@app.post("/user/")
+async def receive_user(user: User):
+    global user_name
+    user_name = user.name
+    return {"message": "User name received"}
+
+
+@app.get("/user/")
+async def get_user():
+    return {"user_name": user_name}
+
+@app.put("/user/")
+async def receive_user(user: User):
+    global user_name
+    user_name = user.name
+    return {"message": "User name changed"}
+
+
+@app.delete("/user/")
+async def del_user():
+    global user_name
+    user_name = "DELETED"
+    return {"message": "User name deleted"}
+
+
+######
+
+# 클래스 쓰는 법
+
+user1=User(name="yejini hihi")
+
+
+
+###########

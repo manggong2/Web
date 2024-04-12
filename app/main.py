@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 class Item(BaseModel):
     name: str
-    description: Union[str, None] = None
     price: float
+    description: Union[str, None] = None
 
 @app.get("/")
 async def read_root():

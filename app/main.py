@@ -1,56 +1,17 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
+
+import requests
 
 app = FastAPI()
 
-user_name = None
-
-class User(BaseModel):
-    name: str
-
-
 @app.get("/")
 def root():
-    return{ "message": "Hello yejini!"}
+    URL = "https://bigdata.kepco.co.kr/openapi/v1/powerUsage/industryType.do?year=2023&month=5&metroCd=31&cityCd=310&bizCd=C&apiKey=34cuFl36WbAEE5JClbnupw2A3oS7qW7f1i15II5D&returnType=json"
+
+    contents = requests.get(URL).text
+
+    return { "message": contents }
 
 @app.get("/home")
 def home():
-    return { "message": "Bye yejini!" }
-
-#####여기까지 저번주########
-
-
-@app.post("/user/")
-async def receive_user(user: User):
-    global user_name
-    user_name = user.name
-    return {"message": "User name received"}
-
-
-@app.get("/user/")
-async def get_user():
-    return {"user_name": user_name}
-
-@app.put("/user/")
-async def receive_user(user: User):
-    global user_name
-    user_name = user.name
-    return {"message": "User name changed"}
-
-
-@app.delete("/user/")
-async def del_user():
-    global user_name
-    user_name = "DELETED"
-    return {"message": "User name deleted"}
-
-
-######
-
-# 클래스 쓰는 법
-
-user1=User(name="yejini hihi")
-
-
-
-###########
+    return { "message": "Home!" } 

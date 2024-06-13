@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Search Library{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="/static/styles.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Search for a Library</h1>
+    <form id="library-search-form">
+        <input type="text" id="library-query" placeholder="Search for a library" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="library-results"></div>
+
+    <div id="book-search" style="display:none;">
+        <h2>Search for Books</h2>
+        <div id="selected-library"></div> <!-- 선택된 도서관 표시 -->
+        <form id="book-search-form">
+            <input type="text" id="book-query" placeholder="Search for books" required>
+            <button type="submit">Search</button>
+        </form>
+        <div id="book-results"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script>
+let selectedLibraryName = ''; // 선택된 도서관 이름을 저장하는 변수
+
+document.getElementById('library-search-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const query = document.getElementById('library-query').value;
+    fetch(`/libraries?query=${query}`).then(response => response.json()).then(data => {
+        let results = '<ul>';
+        data.forEach((library, index) => {
+            results += `<li><div class="library-name">${library.도서관명}</div>
+                <button class="select" onclick="selectLibrary(${index}, '${library.도서관명}')">Select</button>
+            </li>`;
+        });
+        results += '</ul>';
+        document.getElementById('library-results').innerHTML = results;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+});
+
+function selectLibrary(index, libraryName) {
+    fetch(`/library_code/${index}`, {
+        method: 'POST'
+    }).then(response => {
+        if (response.ok) {
+            selectedLibraryName = libraryName; // 도서관 이름을 저장
+            document.getElementById('selected-library').innerText = `Selected Library: ${selectedLibraryName}`; // 도서관 이름 표시
+            document.getElementById('book-search').style.display = 'block';
+            Swal.fire({
+                title: 'Success!',
+                text: 'Library code has been successfully set.',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to set library code.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        }
+    });
+}
+
+document.getElementById('book-search-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const query = document.getElementById('book-query').value;
+    fetch(`/books?query=${query}`).then(response => response.json()).then(data => {
+        let results = '<ul>';
+        data.forEach((book, index) => {
+            results += `<li>
+                <img src="${book.image}" alt="Book Image">
+                <div class="book-info">
+                    <div><strong>${book.title}</strong></div>
+                    <div>${book.author}</div>
+                    <div>${book.publisher}</div>
+                </div>
+                <button class="check" onclick="checkAvailability(${index})">Check Availability</button>
+                <button class="bookmark" onclick="toggleBookmark(${index}, this)">Bookmark</button>
+            </li>`;
+        });
+        results += '</ul>';
+        document.getElementById('book-results').innerHTML = results;
+        window.scrollTo({ top: document.getElementById('library-search-form').offsetTop, behavior: 'smooth' });
+    });
+});
+
+function checkAvailability(index) {
+    fetch(`/check/${index}`, {
+        method: 'POST'
+    }).then(response => response.json()).then(data => {
+        Swal.fire({
+            title: 'Book Availability',
+            text: `Has Book: ${data.hasBook}, Loan Available: ${data.loanAvailable}`,
+            icon: 'info',
+            confirmButtonText: 'OK'
+        });
+    });
+}
+
+function toggleBookmark(index, button) {
+    fetch(`/bookmark/${index}`, {
+        method: 'POST'
+    }).then(response => response.json()).then(data => {
+        Swal.fire({
+            title: 'Bookmark',
+            text: data.message,
+            icon: data.message.includes('removed') ? 'warning' : 'success',
+            confirmButtonText: 'OK'
+        });
+        if (data.message === "Bookmark removed") {
+            button.textContent = "Bookmark";
+        } else if (data.message === "Bookmarked successfully") {
+            button.textContent = "Remove Bookmark";
+        }
+    });
+}
+</script>
+{% endblock %}

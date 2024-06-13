@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Request, Form
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles 
+from fastapi.staticfiles import StaticFiles
 
 import requests
 import xmltodict
@@ -33,8 +33,8 @@ Base = declarative_base()
 
 app = FastAPI()
 
+# Static and template directories
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
 templates = Jinja2Templates(directory="templates")
 
 NAVER_CLIENT_ID = "mqw55g68zcYsPz010T6X"
@@ -80,12 +80,8 @@ def get_db():
         db.close()
 
 @app.get("/", response_class=HTMLResponse)
-def search_library_names(request: Request, query: str = None):
-    """
-    도서관 이름을 검색하고 초기 화면을 렌더링합니다.
-    """
+def read_root(request: Request):
     return templates.TemplateResponse("search_library.html", {"request": request})
-
 
 @app.get("/libraries", response_class=JSONResponse)
 def search_libraries(query: str):

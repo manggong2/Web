@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Request, Form
-from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
@@ -13,6 +13,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from pydantic import BaseModel
 import pandas as pd
+import os
 
 library = '/code/data/도서관정보나루_참여도서관목록.xlsx'
 LIBRARY_CODE = ""
@@ -25,10 +26,12 @@ except Exception as e:
     print(f"엑셀 파일을 읽는 중 오류가 발생했습니다: {e}")
     df = pd.DataFrame()  # 에러 발생 시 빈 데이터프레임으로 초기화
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///../bookmark.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_FILE = os.path.join(BASE_DIR, "bookmark.db")
+
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_FILE}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 app = FastAPI()
